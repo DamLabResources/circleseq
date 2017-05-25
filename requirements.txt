@@ -7,3 +7,6 @@ nwalign==0.3.1
 HTSeq==0.6.1p1
 statsmodels==0.6.1
 pysam==0.9.1.4
+swalign==0.3.1
+biopython==1.68
+pandas
