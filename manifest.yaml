@@ -1,0 +1,26 @@
+reference_genome: /data/index/HXB2LTR.fasta
+analysis_folder: /home/james/Projects/CircleSeq/raw/test/runTest6
+extra_reference: /home/james/Projects/CircleSeq/raw/test/example_qs.fasta
+
+bwa: bwa
+samtools: samtools
+
+read_threshold: 1
+window_size: 3
+mapq_threshold: 40
+start_threshold: 1
+gap_threshold: 3
+mismatch_threshold: 6
+merged_analysis: True
+read_size: 76
+n_thread: 6
+PCR_offset: 80
+
+samples:
+    EcoRV:
+        target: GATATC
+        read1: /data/CSdata/sim_hiv_data/comp_exp_test_r1.fastq
+        read2: /data/CSdata/sim_hiv_data/comp_exp_test_r2.fastq
+        controlread1: /data/CSdata/sim_hiv_data/comp_exp_ctrl_r1.fastq
+        controlread2: /data/CSdata/sim_hiv_data/comp_exp_ctrl_r2.fastq
+        description: CS_Simutation75
