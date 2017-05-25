@@ -14,6 +14,8 @@ import log
 import yaml
 import validation
 import findCleavageSites
+import extraRef
+import offsetAdjust
 
 logger = log.createCustomLogger('root')
 
@@ -26,6 +28,9 @@ class CircleSeq:
         self.start_threshold = 1
         self.gap_threshold = 1
         self.mismatch_threshold = 6
+        self.read_size = 75
+        self.n_thread = 1
+        self.PCR_offset = 0
         self.merged_analysis = True
 
     def parseManifest(self, manifest_path, sample='all'):
@@ -42,6 +47,22 @@ class CircleSeq:
             self.reference_genome = manifest_data['reference_genome']
             self.analysis_folder = manifest_data['analysis_folder']
 
+            # Make folders for output
+            self.folders = ['aligned', 'identified', 'fastq', 'visualization', 'reference']
+            for folder in self.folders:
+                output_folder = os.path.join(self.analysis_folder, folder)
+                if not os.path.exists(output_folder):
+                    os.makedirs(output_folder)
+
+            # Extra reference genome for index reconstruction of partially redundant sequences
+            if 'extra_reference' in manifest_data:
+                self.read_size = manifest_data['read_size']
+                self.extra_ref_file = manifest_data['extra_reference']
+                self.extra_ref_name = (self.extra_ref_file.split('/')[-1]).split('\.')[0]
+                self.extra_ref_path = os.path.join(self.analysis_folder, 'reference', self.extra_ref_name )
+                self.final_ref_path = os.path.join(self.analysis_folder, 'reference', 'new_reference.fasta')
+                self.extra_chr_names = extraRef.readRef(self.extra_ref_file, self.reference_genome, self.read_size, self.extra_ref_path, self.final_ref_path)
+                self.reference_genome = self.final_ref_path
             # Allow the user to specify read threshold and windowsize if they'd like
             if 'read_threshold' in manifest_data:
                 self.read_threshold = manifest_data['read_threshold']
@@ -57,17 +78,20 @@ class CircleSeq:
                 self.mismatch_threshold = manifest_data['mismatch_threshold']
             if 'merged_analysis' in manifest_data:
                 self.merged_analysis = manifest_data['merged_analysis']
+            if 'read_size' in manifest_data:
+                self.read_size = manifest_data['read_size']
+            if 'n_thread' in manifest_data:
+                self.n_thread = manifest_data['n_thread']
+            if 'PCR_offset' in manifest_data:
+                self.PCR_offset = manifest_data['PCR_offset']
 
             if sample == 'all':
                 self.samples = manifest_data['samples']
             else:
                 self.samples = {}
                 self.samples[sample] = manifest_data['samples'][sample]
-            # Make folders for output
-            for folder in [ 'aligned', 'identified', 'fastq', 'visualization' ]:
-                output_folder = os.path.join(self.analysis_folder, folder)
-                if not os.path.exists(output_folder):
-                    os.makedirs(output_folder)
+
+
 
         except Exception as e:
             logger.error('Incorrect or malformed manifest file. Please ensure your manifest contains all required fields.')
@@ -75,7 +99,7 @@ class CircleSeq:
 
     def alignReads(self):
         if self.merged_analysis:
-            logger.info('Merging reads...')
+            logger.info('Merging reads with {0} threads.'.format(self.n_thread))
             try:
                 self.merged = {}
                 for sample in self.samples:
@@ -95,13 +119,13 @@ class CircleSeq:
                                self.reference_genome,
                                sample_merge_path,
                                '',
-                               sample_alignment_path)
+                               sample_alignment_path, self.n_thread)
 
                     alignReads(self.BWA_path,
                                self.reference_genome,
                                control_sample_merge_path,
                                '',
-                               control_sample_alignment_path)
+                               control_sample_alignment_path, self.n_thread)
 
                     self.merged[sample] = sample_alignment_path
                     logger.info('Finished merging and aligning reads.')
@@ -111,7 +135,7 @@ class CircleSeq:
                 logger.error(traceback.format_exc())
                 quit()
         else:
-            logger.info('Aligning reads...')
+            logger.info('Aligning (non-merged) reads with {0} threads.'.format(self.n_thread))
             try:
                 self.aligned = {}
                 self.aligned_sorted = {}
@@ -122,12 +146,12 @@ class CircleSeq:
                                self.reference_genome,
                                self.samples[sample]['read1'],
                                self.samples[sample]['read2'],
-                               sample_alignment_path)
+                               sample_alignment_path, self.n_thread)
                     alignReads(self.BWA_path,
                                self.reference_genome,
                                self.samples[sample]['controlread1'],
                                self.samples[sample]['controlread2'],
-                               control_sample_alignment_path)
+                               control_sample_alignment_path, self.n_thread)
                     self.aligned[sample] = sample_alignment_path
                     self.aligned_sorted[sample] = os.path.join(self.analysis_folder, 'aligned', sample + '_sorted.bam')
                     logger.info('Finished aligning reads to genome.')
@@ -154,7 +178,10 @@ class CircleSeq:
                 findCleavageSites.compare(self.reference_genome, sorted_bam_file, control_sorted_bam_file, self.samples[sample]['target'],
                                           self.read_threshold, self.window_size, self.mapq_threshold, self.gap_threshold,
                                           self.start_threshold, self.mismatch_threshold, sample, self.samples[sample]['description'],
-                                          identified_sites_file, merged=self.merged_analysis)
+                                          identified_sites_file, self.read_size, self.extra_chr_names, merged=self.merged_analysis)
+            if self.PCR_offset >0:
+                offsetAdjust.adjust(self.PCR_offset, self.read_size, self.analysis_folder)
+
         except Exception as e:
             logger.error('Error identifying off-target cleavage site.')
             logger.error(traceback.format_exc())

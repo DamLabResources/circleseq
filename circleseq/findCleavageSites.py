@@ -16,7 +16,7 @@ import sys
     Add positions to genomic array.
 """
 def tabulate_merged_start_positions(BamFileName, cells, name, targetsite, mapq_threshold, gap_threshold,
-                                    start_threshold, outfile_base):
+                                    start_threshold, read_size, chr_names,  outfile_base):
     output_filename = '{0}_coordinates.txt'.format(outfile_base)
 
     sorted_bam_file = HTSeq.BAM_Reader(BamFileName)
@@ -29,12 +29,12 @@ def tabulate_merged_start_positions(BamFileName, cells, name, targetsite, mapq_t
 
     read_count = 0
     ref_chr = [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
-                '20', '21', '22', 'X', 'Y']
+                '20', '21', '22', 'X', 'Y'] + chr_names
 
 
     with open(output_filename, 'w') as o:
         header = ['#Name', 'Targetsite_Sequence', 'Cells', 'BAM', 'Read1_chr', 'Read1_start_position', 'Read1_strand',
-                  'Read2_chr', 'Read1_start_position', 'Read2_strand']
+                  'Read2_chr', 'Read2_start_position', 'Read2_strand']
         print(*header, sep='\t', file=o)
 
         for read in sorted_bam_file:
@@ -51,19 +51,19 @@ def tabulate_merged_start_positions(BamFileName, cells, name, targetsite, mapq_t
                     # Note strand polarity is reversed for position 151 (because it is part of the strand that was
                     # reverse complemented initially before alignment
                     if cigar_operation.type == 'M':
-                        if ((cigar_operation.query_from <= 146 - start_threshold) and
-                                (151 - start_threshold <= cigar_operation.query_to)):
+                        if ((cigar_operation.query_from <= read_size - 5 - start_threshold) and
+                                (read_size - start_threshold <= cigar_operation.query_to)):
                             first_read_cigar = cigar_operation
                             first_read_chr = cigar_operation.ref_iv.chrom
-                            first_end = min(cigar_operation.query_to, 151)
+                            first_end = min(cigar_operation.query_to, read_size)
                             distance = first_end - cigar_operation.query_from
                             first_read_position = cigar_operation.ref_iv.start + distance - 1
                             first_read_strand = '-'
-                        if ((cigar_operation.query_from <= 151 + start_threshold) and
-                                (156 + start_threshold <= cigar_operation.query_to)):
+                        if ((cigar_operation.query_from <= read_size + start_threshold) and
+                                (read_size + 5 + start_threshold <= cigar_operation.query_to)):
                             second_read_cigar = cigar_operation
                             second_read_chr = cigar_operation.ref_iv.chrom
-                            second_end = max(151, cigar_operation.query_from)
+                            second_end = max(read_size, cigar_operation.query_from)
                             distance = second_end - cigar_operation.query_from
                             second_read_position = cigar_operation.ref_iv.start + distance
                             second_read_strand = '+'
@@ -108,11 +108,11 @@ def tabulate_start_positions(BamFileName, cells, name, targetsite, mapq_threshol
     read_count = 0
 
     ref_chr = [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
-                '20', '21', '22', 'X', 'Y']
+                '20', '21', '22', 'X', 'Y', 'HXB2']
 
     with open(output_filename, 'w') as o:
         header = ['#Name', 'Targetsite_Sequence', 'Cells', 'BAM', 'Read1_chr', 'Read1_start_position', 'Read1_strand',
-                  'Read2_chr', 'Read1_start_position', 'Read2_strand']
+                  'Read2_chr', 'Read2_start_position', 'Read2_strand']
         print(*header, sep='\t', file=o)
         for bundle in HTSeq.pair_SAM_alignments(sorted_bam_file, bundle=True):
             output = False
@@ -468,7 +468,7 @@ def get_sequence(reference_genome, chromosome, start, end, strand="+"):
 
 
 def compare(ref, bam, control, targetsite, reads, windowsize, mapq_threshold, gap_threshold, start_threshold, mismatch_threshold, name,
-            cells, out, merged=True):
+            cells, out, read_size, chr_names, merged=True):
 
     output_list = list()
 
@@ -494,11 +494,11 @@ def compare(ref, bam, control, targetsite, reads, windowsize, mapq_threshold, ga
             print("Tabulate nuclease merged start positions.", file=sys.stderr)
             nuclease_ga, nuclease_ga_windows, nuclease_ga_stranded, nuclease_ga_coverage, total_nuclease_count = \
                 tabulate_merged_start_positions(bam, cells, name, targetsite, mapq_threshold, gap_threshold,
-                                                start_threshold, out + '_NUCLEASE')
+                                                start_threshold, read_size, chr_names, out + '_NUCLEASE')
             print("Tabulate control merged start positions.", file=sys.stderr)
             control_ga, control_ga_windows, control_ga_stranded, control_ga_coverage, total_control_count = \
                 tabulate_merged_start_positions(control, cells, name, targetsite, mapq_threshold, gap_threshold,
-                                                start_threshold, out + '_CONTROL')
+                                                start_threshold, read_size, chr_names, out + '_CONTROL')
         else:
             print("Tabulate nuclease standard start positions.", file=sys.stderr)
             nuclease_ga, nuclease_ga_windows, nuclease_ga_stranded, nuclease_ga_coverage, total_nuclease_count = \
