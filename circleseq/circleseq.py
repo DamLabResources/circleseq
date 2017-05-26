@@ -63,6 +63,7 @@ class CircleSeq:
                 self.extra_ref_path = os.path.join(self.analysis_folder, 'reference', self.extra_ref_name )
                 self.final_ref_path = os.path.join(self.analysis_folder, 'reference', 'new_reference.fasta')
                 self.extra_chr_names = extraRef.readRef(self.extra_ref_file, self.reference_genome, self.read_size, self.extra_ref_path, self.final_ref_path)
+
                 self.reference_genome = self.final_ref_path
             # Allow the user to specify read threshold and windowsize if they'd like
             if 'read_threshold' in manifest_data:
