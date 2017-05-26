@@ -32,6 +32,7 @@ class CircleSeq:
         self.n_thread = 1
         self.PCR_offset = 0
         self.merged_analysis = True
+        self.extra_chr_names = []
 
     def parseManifest(self, manifest_path, sample='all'):
         logger.info('Loading manifest...')
