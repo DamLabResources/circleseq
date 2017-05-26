@@ -29,7 +29,7 @@ def tabulate_merged_start_positions(BamFileName, cells, name, targetsite, mapq_t
 
     read_count = 0
     ref_chr = [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
-                '20', '21', '22', 'X', 'Y'] + chr_names
+                '20', '21', '22', 'X', 'Y', 'HXB2'] + chr_names
 
 
     with open(output_filename, 'w') as o:
