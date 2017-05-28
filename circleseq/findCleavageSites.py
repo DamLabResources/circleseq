@@ -296,13 +296,15 @@ def output_alignments(ga, narrow_ga, ga_windows, reference_genome, target_sequen
                     control_pos_pval_list.append(value[3])
                     control_nar_pval_list.append(value[4])
                     control_one_pval_list.append(value[5])
-
-            pval_pos = min(pos_pval_list)
-            pval_nar = min(nar_pval_list)
-            pval_one = min(one_pval_list)
-            control_pval_pos = min(control_pos_pval_list)
-            control_pval_nar = min(control_nar_pval_list)
-            control_pval_one = min(control_one_pval_list)
+	    try:
+            	pval_pos = min(pos_pval_list)
+            	pval_nar = min(nar_pval_list)
+            	pval_one = min(one_pval_list)
+            	control_pval_pos = min(control_pos_pval_list)
+            	control_pval_nar = min(control_nar_pval_list)
+            	control_pval_one = min(control_one_pval_list)
+	    except ValueError:
+		continue
 
             print(*(row + [pval_pos, pval_nar, pval_one, control_pval_pos,
                            control_pval_nar, control_pval_one]), sep='\t', file=o1)
@@ -329,13 +331,15 @@ def output_alignments(ga, narrow_ga, ga_windows, reference_genome, target_sequen
                     un_control_pos_pval_list.append(value[3])
                     un_control_nar_pval_list.append(value[4])
                     un_control_one_pval_list.append(value[5])
-
-            un_pval_pos = min(un_pos_pval_list)
-            un_pval_nar = min(un_nar_pval_list)
-            un_pval_one = min(un_one_pval_list)
-            un_control_pval_pos = min(un_control_pos_pval_list)
-            un_control_pval_nar = min(un_control_nar_pval_list)
-            un_control_pval_one = min(un_control_one_pval_list)
+	    try:
+            	un_pval_pos = min(un_pos_pval_list)
+            	un_pval_nar = min(un_nar_pval_list)
+            	un_pval_one = min(un_one_pval_list)
+            	un_control_pval_pos = min(un_control_pos_pval_list)
+            	un_control_pval_nar = min(un_control_nar_pval_list)
+            	un_control_pval_one = min(un_control_one_pval_list)
+	    except ValueError:
+		continue
 
             print(*(unrow + [un_pval_pos, un_pval_nar, un_pval_one,
                              un_control_pval_pos, un_control_pval_nar, un_control_pval_one]), sep='\t', file=o2)
