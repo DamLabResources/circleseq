@@ -419,7 +419,7 @@ def alignSequences(targetsite_sequence, window_sequence, max_errors=7):
         length = len(match_sequence)
 
         start = chosen_alignment.start()
-        end = chosen_alignment.end()
+        end = chosen_alignment.end() -1
         path = os.path.dirname(os.path.abspath(__file__))
         if match_insertions or match_deletions:
             realigned_match_sequence, realigned_target = nw.global_align(match_sequence, targetsite_sequence,

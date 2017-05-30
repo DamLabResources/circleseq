@@ -4,6 +4,7 @@ import itertools
 import gzip
 import logging
 import os
+import sys
 from utility import reverseComplement, fq
 
 
