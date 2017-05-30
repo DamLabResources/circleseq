@@ -11,7 +11,7 @@ def adjust(offset, read_size, folder):
     identified_folder = os.path.join(folder, 'identified', '*.txt')
     files = glob.glob(identified_folder)
     adjusted_folder = os.path.join(folder, 'adjusted')
-    if not os.path.exists(adjusted_folder):
+    if not os.path.isfile(adjusted_folder):
         os.makedirs(adjusted_folder)
     for f in files:
         name = f.split('/')[-1]

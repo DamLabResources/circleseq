@@ -3,19 +3,29 @@ from Bio import SeqIO
 import argparse
 from subprocess import check_call
 import shlex
+import os
+import logging
+
+logger = logging.getLogger('root')
+logger.propagate = False
 
 def readRef(extra_ref_path, ref_path, read_size, exout, finalout):
     names = []
     read_size-=1
-    with open(exout, 'w') as handle:
+    if not os.path.isfile(finalout):
+        logger.info("Making new reference genome with extended sequences from extra chromosomes.")
+        with open(exout, 'w') as handle:
+            for seq in SeqIO.parse(extra_ref_path, 'fasta'):
+                seq.seq = seq.seq[-read_size:] + seq.seq + seq.seq[:read_size]
+                names.append(seq.id)
+                SeqIO.write(seq, handle, 'fasta')
+        cmd = 'cat %s %s' % (exout, ref_path)
+        with open(finalout, 'w') as handle:
+            check_call(shlex.split(cmd), stdout=handle)
+    else:
+        logger.info("Extended reference already exists.")
         for seq in SeqIO.parse(extra_ref_path, 'fasta'):
-            seq.seq = seq.seq[-read_size:] + seq.seq + seq.seq[:read_size]
             names.append(seq.id)
-            SeqIO.write(seq, handle, 'fasta')
-    cmd = 'cat %s %s' % (exout, ref_path)
-    with open(finalout, 'w') as handle:
-        check_call(shlex.split(cmd), stdout=handle)
-
     return names
 
 def main():

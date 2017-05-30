@@ -275,7 +275,7 @@ def output_alignments(ga, narrow_ga, ga_windows, reference_genome, target_sequen
                                          filename, target_name, target_cells, full_name, target_sequence, 'none']
 
     # Write matched table
-    print("Writing matched table", file=sys.stderr)
+    print("\nWriting matched table", file=sys.stderr)
     tags_sorted = matched_dict.keys()
     tags_sorted.sort()
     outfile_matched = '{0}_identified_matched.txt'.format(out)
@@ -303,11 +303,12 @@ def output_alignments(ga, narrow_ga, ga_windows, reference_genome, target_sequen
                 control_pval_pos = min(control_pos_pval_list)
                 control_pval_nar = min(control_nar_pval_list)
                 control_pval_one = min(control_one_pval_list)
+                print(*(row + [pval_pos, pval_nar, pval_one, control_pval_pos,
+                               control_pval_nar, control_pval_one]), sep='\t', file=o1)
             except ValueError:
                 continue
 
-            print(*(row + [pval_pos, pval_nar, pval_one, control_pval_pos,
-                           control_pval_nar, control_pval_one]), sep='\t', file=o1)
+
 
     # Write unmatched table
     print("Writing unmatched table", file=sys.stderr)
@@ -338,11 +339,12 @@ def output_alignments(ga, narrow_ga, ga_windows, reference_genome, target_sequen
                 un_control_pval_pos = min(un_control_pos_pval_list)
                 un_control_pval_nar = min(un_control_nar_pval_list)
                 un_control_pval_one = min(un_control_one_pval_list)
+                print(*(unrow + [un_pval_pos, un_pval_nar, un_pval_one,
+                                 un_control_pval_pos, un_control_pval_nar, un_control_pval_one]), sep='\t', file=o2)
             except ValueError:
                 continue
 
-            print(*(unrow + [un_pval_pos, un_pval_nar, un_pval_one,
-                             un_control_pval_pos, un_control_pval_nar, un_control_pval_one]), sep='\t', file=o2)
+
 
     # return matched_dict, unmatched_dict
 
@@ -501,7 +503,7 @@ def compare(ref, bam, control, targetsite, reads, windowsize, mapq_threshold, ga
             nuclease_ga, nuclease_ga_windows, nuclease_ga_stranded, nuclease_ga_coverage, total_nuclease_count = \
                 tabulate_merged_start_positions(bam, cells, name, targetsite, mapq_threshold, gap_threshold,
                                                 start_threshold, read_size, chr_names, out + '_NUCLEASE')
-            print("Tabulate control merged start positions.", file=sys.stderr)
+            print("\nTabulate control merged start positions.", file=sys.stderr)
             control_ga, control_ga_windows, control_ga_stranded, control_ga_coverage, total_control_count = \
                 tabulate_merged_start_positions(control, cells, name, targetsite, mapq_threshold, gap_threshold,
                                                 start_threshold, read_size, chr_names, out + '_CONTROL')

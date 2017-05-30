@@ -59,9 +59,10 @@ class CircleSeq:
             if 'extra_reference' in manifest_data:
                 self.read_size = manifest_data['read_size']
                 self.extra_ref_file = manifest_data['extra_reference']
-                self.extra_ref_name = (self.extra_ref_file.split('/')[-1]).split('\.')[0]
+                self.extra_ref_name = (self.extra_ref_file.split('/')[-1]).split('.')[0]
+                self.ori_ref_name = (self.reference_genome.split('/')[-1]).split('.')[0]
                 self.extra_ref_path = os.path.join(self.analysis_folder, 'reference', self.extra_ref_name )
-                self.final_ref_path = os.path.join(self.analysis_folder, 'reference', 'new_reference.fasta')
+                self.final_ref_path = os.path.join(self.analysis_folder, 'reference', self.extra_ref_name + '_' + self.ori_ref_name + '.fasta')
                 self.extra_chr_names = extraRef.readRef(self.extra_ref_file, self.reference_genome, self.read_size, self.extra_ref_path, self.final_ref_path)
 
                 self.reference_genome = self.final_ref_path
@@ -101,7 +102,7 @@ class CircleSeq:
 
     def alignReads(self):
         if self.merged_analysis:
-            logger.info('Merging reads with {0} threads.'.format(self.n_thread))
+            logger.info('Merging reads from paired-end sequence using {0} threads.'.format(self.n_thread))
             try:
                 self.merged = {}
                 for sample in self.samples:
